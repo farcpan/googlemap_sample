@@ -29,6 +29,8 @@ $ npm create vite@latest
 
 ## Google Map SDK
 
+Google Cloud > 鍵と認証情報 > 認証情報を作成 > APIキー
+
 ```
 $ npm install @react-google-maps/api
 $ npm install @googlemaps/markerclusterer
