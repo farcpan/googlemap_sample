@@ -13,7 +13,7 @@ const center = {
 };
 
 export const App = () => {
-  const [markerList, setMarkerList] = useState<{ lat: number, lng: number, title: string }[]>([]);
+  const [markerList, setMarkerList] = useState<{ lat: number, lng: number, title: string, url: string }[]>([]);
   const [boundsInfo, setBoundsInfo] = useState<{
     minLat: number;
     maxLat: number;
@@ -23,7 +23,7 @@ export const App = () => {
   const mapRef = useRef<google.maps.Map | null>(null);
   const clustererRef = useRef<MarkerClusterer | null>(null);
   useEffect(() => {
-    setMarkerList(generateRandomTokyoPoints(1000));
+    setMarkerList(generateRandomTokyoPoints(10000));
   }, []);
 
   const onLoadMap = useCallback((map: google.maps.Map) => {
@@ -39,10 +39,43 @@ export const App = () => {
 
     // Marker インスタンスを作成
     const markers = markerList.map((p) => {
-      return new google.maps.Marker({
+      const marker = new google.maps.Marker({
         position: { lat: p.lat, lng: p.lng },
-        title: p.title,
+        // title: p.title,
       });
+
+      // ✅ InfoWindow を作成（複数行OK、HTML OK）
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <div style="font-size:14px;">
+            <div><b>${p.title}</b></div>
+            <div>lat: ${p.lat}</div>
+            <div>lng: ${p.lng}</div>
+            <span>クリックでカメラ画面に遷移できます。</span>
+          </div>
+        `,
+      });
+
+      // ✅ hover 時に InfoWindow 表示
+      marker.addListener("mouseover", () => {
+        infoWindow.open({
+          anchor: marker,
+          map: mapRef.current!,
+          shouldFocus: false,
+        });
+      });
+
+      // ✅ hover 離れたら閉じる
+      marker.addListener("mouseout", () => {
+        infoWindow.close();
+      });
+      
+      marker.addListener("click", () => {
+        console.log(p.url);
+        window.location.href = p.url;
+      });
+
+      return marker;
     });
 
     // MarkerClusterer を作成
@@ -121,7 +154,8 @@ const generateRandomTokyoPoints = (count: number) => {
     const lng = baseLng + (Math.random() - 0.5) * 0.05;
     // 適当な文字列をタイトルにする
     const title = `Marker-${i + 1}`;
-    points.push({ lat, lng, title });
+    const url = "https://example.com/" + title;
+    points.push({ lat, lng, title, url });
   }
 
   return points;
